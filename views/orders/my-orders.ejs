@@ -1,0 +1,334 @@
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">My Orders</h1>
+        
+        <% if (orders && orders.length > 0) { %>
+            <% orders.forEach(order => { %>
+            <div class="card mb-3 order-card" id="order-<%= order._id %>">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>Order #<%= order.orderId %></strong>
+                        <br><small class="text-muted">Placed on <%= order.createdAt.toLocaleDateString() %></small>
+                    </div>
+                    <span class="badge bg-<%= 
+                        order.status === 'delivered' ? 'success' : 
+                        order.status === 'processing' ? 'info' : 
+                        order.status === 'shipped' ? 'primary' : 
+                        order.status === 'cancelled' ? 'danger' : 'warning' 
+                    %>">
+                        <%= order.status %>
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Items:</h6>
+                            <% order.items.forEach(item => { %>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><%= item.name %> x <%= item.quantity %></span>
+                                <span>$<%= item.subtotal %></span>
+                            </div>
+                            <% }) %>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Summary:</h6>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Subtotal:</span>
+                                <span>$<%= order.subtotal %></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Shipping:</span>
+                                <span>$<%= order.shippingFee %></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Tax:</span>
+                                <span>$<%= order.tax %></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <strong>Total:</strong>
+                                <strong>$<%= order.totalAmount %></strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="row mt-3">
+                        <div class="col-12 d-flex justify-content-between">
+                            <div>
+                                <a href="/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                                <a href="/orders/<%= order._id %>/invoice" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-file-invoice"></i> Download Invoice
+                                </a>
+                            </div>
+                            
+                            <!-- Cancel Order Button (only show for cancellable orders) -->
+                            <% if (['pending', 'processing'].includes(order.status)) { %>
+                            <button class="btn btn-sm btn-outline-danger cancel-order-btn" 
+                                    data-order-id="<%= order._id %>"
+                                    data-order-number="<%= order.orderId %>">
+                                <i class="fas fa-times"></i> Cancel Order
+                            </button>
+                            <% } %>
+                            
+                            <!-- Remove Order Button (only show for cancelled/delivered orders) -->
+                            <% if (['cancelled', 'delivered'].includes(order.status)) { %>
+                            <button class="btn btn-sm btn-outline-warning remove-order-btn" 
+                                    data-order-id="<%= order._id %>"
+                                    data-order-number="<%= order.orderId %>">
+                                <i class="fas fa-trash-alt"></i> Remove from List
+                            </button>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% }) %>
+        <% } else { %>
+            <div class="text-center py-5">
+                <h3>No orders yet</h3>
+                <p>You haven't placed any orders yet.</p>
+                <a href="/products" class="btn btn-primary">Start Shopping</a>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<!-- Cancel Order Confirmation Modal -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel order <strong id="modalOrderNumber"></strong>?</p>
+                <p class="text-danger"><small>This action cannot be undone. If you've already been charged, a refund will be processed.</small></p>
+                <div class="mb-3">
+                    <label for="cancelReason" class="form-label">Reason for cancellation (optional):</label>
+                    <textarea class="form-control" id="cancelReason" rows="3" placeholder="Please tell us why you're cancelling this order..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
+                <button type="button" class="btn btn-danger" id="confirmCancelBtn">Yes, Cancel Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Remove Order Confirmation Modal -->
+<div class="modal fade" id="removeOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Remove Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove order <strong id="modalRemoveOrderNumber"></strong> from your list?</p>
+                <p class="text-warning"><small>This will only hide the order from your view. It will still exist in our records.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Visible</button>
+                <button type="button" class="btn btn-warning" id="confirmRemoveBtn">Yes, Remove</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for handling order actions -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentOrderId = null;
+    
+    // Cancel Order Functionality
+    document.querySelectorAll('.cancel-order-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            currentOrderId = this.getAttribute('data-order-id');
+            const orderNumber = this.getAttribute('data-order-number');
+            
+            document.getElementById('modalOrderNumber').textContent = orderNumber;
+            const modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
+            modal.show();
+        });
+    });
+    
+    // Remove Order Functionality
+    document.querySelectorAll('.remove-order-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            currentOrderId = this.getAttribute('data-order-id');
+            const orderNumber = this.getAttribute('data-order-number');
+            
+            document.getElementById('modalRemoveOrderNumber').textContent = orderNumber;
+            const modal = new bootstrap.Modal(document.getElementById('removeOrderModal'));
+            modal.show();
+        });
+    });
+    
+    // Confirm Cancel Order
+    document.getElementById('confirmCancelBtn').addEventListener('click', async function() {
+        const reason = document.getElementById('cancelReason').value;
+        
+        try {
+            const response = await fetch(`/orders/${currentOrderId}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ reason: reason })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('cancelOrderModal'));
+                modal.hide();
+                
+                // Show success message
+                showAlert('Order cancelled successfully!', 'success');
+                
+                // Update the order card
+                const orderCard = document.getElementById(`order-${currentOrderId}`);
+                if (orderCard) {
+                    // Update status badge
+                    const badge = orderCard.querySelector('.badge');
+                    badge.className = 'badge bg-danger';
+                    badge.textContent = 'cancelled';
+                    
+                    // Remove cancel button
+                    const cancelBtn = orderCard.querySelector('.cancel-order-btn');
+                    if (cancelBtn) {
+                        cancelBtn.remove();
+                    }
+                    
+                    // Add remove button
+                    const actionsDiv = orderCard.querySelector('.col-12.d-flex');
+                    if (actionsDiv) {
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'btn btn-sm btn-outline-warning remove-order-btn';
+                        removeBtn.setAttribute('data-order-id', currentOrderId);
+                        removeBtn.setAttribute('data-order-number', orderCard.querySelector('strong').textContent.replace('Order #', ''));
+                        removeBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Remove from List';
+                        removeBtn.addEventListener('click', function() {
+                            currentOrderId = this.getAttribute('data-order-id');
+                            const orderNumber = this.getAttribute('data-order-number');
+                            document.getElementById('modalRemoveOrderNumber').textContent = orderNumber;
+                            const modal = new bootstrap.Modal(document.getElementById('removeOrderModal'));
+                            modal.show();
+                        });
+                        actionsDiv.appendChild(removeBtn);
+                    }
+                }
+            } else {
+                showAlert(result.error || 'Failed to cancel order', 'danger');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('An error occurred. Please try again.', 'danger');
+        }
+    });
+    
+    // Confirm Remove Order
+    document.getElementById('confirmRemoveBtn').addEventListener('click', async function() {
+        try {
+            const response = await fetch(`/orders/${currentOrderId}/remove-from-list`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('removeOrderModal'));
+                modal.hide();
+                
+                // Show success message
+                showAlert('Order removed from your list!', 'success');
+                
+                // Hide the order card with fade animation
+                const orderCard = document.getElementById(`order-${currentOrderId}`);
+                if (orderCard) {
+                    orderCard.style.transition = 'opacity 0.3s';
+                    orderCard.style.opacity = '0';
+                    setTimeout(() => {
+                        orderCard.remove();
+                        
+                        // Check if no orders left
+                        if (document.querySelectorAll('.order-card').length === 0) {
+                            location.reload(); // Reload to show "No orders" message
+                        }
+                    }, 300);
+                }
+            } else {
+                showAlert(result.error || 'Failed to remove order', 'danger');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('An error occurred. Please try again.', 'danger');
+        }
+    });
+    
+    // Helper function to show alerts
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+        alertDiv.style.zIndex = '9999';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    // Clear modal data when hidden
+    document.getElementById('cancelOrderModal').addEventListener('hidden.bs.modal', function() {
+        document.getElementById('cancelReason').value = '';
+        currentOrderId = null;
+    });
+    
+    document.getElementById('removeOrderModal').addEventListener('hidden.bs.modal', function() {
+        currentOrderId = null;
+    });
+});
+</script>
+
+<style>
+.order-card {
+    transition: all 0.3s ease;
+}
+
+.order-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.cancel-order-btn:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.remove-order-btn:hover {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge {
+    font-size: 0.8em;
+    padding: 0.5em 0.8em;
+}
+</style>

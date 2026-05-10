@@ -1,0 +1,103 @@
+<div class="row">
+    <div class="col-md-6">
+        <img src="<%= product.images && product.images[0] ? product.images[0] : 'https://via.placeholder.com/400x300' %>" 
+             class="img-fluid rounded" alt="<%= product.name %>">
+    </div>
+    <div class="col-md-6">
+        <h1><%= product.name %></h1>
+        <p class="text-muted"><%= product.brand || '' %></p>
+        
+        <div class="product-price mb-3">
+            <% if (product.discountPrice) { %>
+                <h2 class="text-danger">$<%= product.discountPrice %></h2>
+                <h4 class="text-muted text-decoration-line-through">$<%= product.price %></h4>
+                <span class="badge bg-danger">Save <%= product.discountPercentage %>%</span>
+            <% } else { %>
+                <h2>$<%= product.price %></h2>
+            <% } %>
+        </div>
+        
+        <div class="mb-3">
+            <% if (product.stock > 0) { %>
+                <span class="text-success"><i class="fas fa-check-circle"></i> In Stock</span>
+            <% } else { %>
+                <span class="text-danger"><i class="fas fa-times-circle"></i> Out of Stock</span>
+            <% } %>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Quantity:</label>
+            <div class="input-group" style="width: 150px;">
+                <button class="btn btn-outline-secondary" onclick="decrementQuantity()">-</button>
+                <input type="number" id="quantity" class="form-control text-center" value="1" min="1" max="<%= product.stock %>">
+                <button class="btn btn-outline-secondary" onclick="incrementQuantity()">+</button>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <% if (product.stock > 0) { %>
+                <button class="btn btn-primary btn-lg me-2" onclick="addToCart('<%= product._id %>')">
+                    <i class="fas fa-cart-plus"></i> Add to Cart
+                </button>
+                <button class="btn btn-success btn-lg" onclick="buyNow('<%= product._id %>')">
+                    <i class="fas fa-bolt"></i> Buy Now
+                </button>
+            <% } else { %>
+                <button class="btn btn-secondary btn-lg" disabled>
+                    <i class="fas fa-bell"></i> Notify Me
+                </button>
+            <% } %>
+        </div>
+        
+        <div class="product-details">
+            <h5>Description</h5>
+            <p><%= product.description || 'No description available.' %></p>
+        </div>
+    </div>
+</div>
+
+<script>
+function incrementQuantity() {
+    const input = document.getElementById('quantity');
+    const max = parseInt(input.max);
+    if (parseInt(input.value) < max) {
+        input.value = parseInt(input.value) + 1;
+    }
+}
+
+function decrementQuantity() {
+    const input = document.getElementById('quantity');
+    if (parseInt(input.value) > 1) {
+        input.value = parseInt(input.value) - 1;
+    }
+}
+
+function addToCart(productId) {
+    const quantity = document.getElementById('quantity').value;
+    
+    $.ajax({
+        url: '/cart/add',
+        method: 'POST',
+        data: {
+            productId: productId,
+            quantity: quantity
+        },
+        success: function(response) {
+            if (response.success) {
+                alert('Product added to cart!');
+                // Update cart count
+                $('.badge.bg-danger').text(response.cartCount).removeClass('d-none');
+            } else {
+                alert('Error: ' + response.error);
+            }
+        }
+    });
+}
+
+function buyNow(productId) {
+    addToCart(productId);
+    setTimeout(() => {
+        window.location.href = '/cart';
+    }, 500);
+}
+</script>

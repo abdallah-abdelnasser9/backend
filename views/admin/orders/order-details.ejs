@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .order-status-badge {
+            font-size: 0.85rem;
+            padding: 0.35rem 0.75rem;
+        }
+        .order-info-card {
+            border-left: 4px solid #4e73df;
+        }
+        .order-items-table th {
+            background-color: #f8f9fc;
+        }
+        .status-form {
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <!-- Flash Messages -->
+        <% if (error_msg && error_msg.length > 0) { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <%= error_msg %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <% } %>
+        
+        <% if (success_msg && success_msg.length > 0) { %>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <%= success_msg %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <% } %>
+
+        <!-- Back Button -->
+        <div class="mb-4">
+            <a href="/admin/orders" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Orders
+            </a>
+        </div>
+
+        <div class="row">
+            <!-- Left Column: Order Details -->
+            <div class="col-lg-8">
+                <!-- Order Header -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Order #<%= order.orderId %></h5>
+                        <span class="badge order-status-badge bg-<%= 
+                            order.status === 'delivered' ? 'success' : 
+                            order.status === 'processing' ? 'info' : 
+                            order.status === 'shipped' ? 'primary' : 
+                            order.status === 'cancelled' ? 'danger' : 'warning' 
+                        %>">
+                            <%= order.status.toUpperCase() %>
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Order Information</h6>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Order Date:</strong></td>
+                                        <td><%= order.createdAt.toLocaleString() %></td>
+                                    </tr>
+                                    <% if (order.deliveredAt) { %>
+                                    <tr>
+                                        <td><strong>Delivered Date:</strong></td>
+                                        <td><%= order.deliveredAt.toLocaleString() %></td>
+                                    </tr>
+                                    <% } %>
+                                    <% if (order.cancelledAt) { %>
+                                    <tr>
+                                        <td><strong>Cancelled Date:</strong></td>
+                                        <td><%= order.cancelledAt.toLocaleString() %></td>
+                                    </tr>
+                                    <% } %>
+                                    <tr>
+                                        <td><strong>Payment Method:</strong></td>
+                                        <td><%= order.paymentMethod.toUpperCase() %></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Payment Status:</strong></td>
+                                        <td>
+                                            <span class="badge bg-<%= 
+                                                order.paymentStatus === 'completed' ? 'success' : 
+                                                order.paymentStatus === 'failed' ? 'danger' : 'warning' 
+                                            %>">
+                                                <%= order.paymentStatus.toUpperCase() %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Customer Information</h6>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Name:</strong></td>
+                                        <td><%= order.user.name %></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Email:</strong></td>
+                                        <td><%= order.user.email %></td>
+                                    </tr>
+                                    <% if (order.user.phone) { %>
+                                    <tr>
+                                        <td><strong>Phone:</strong></td>
+                                        <td><%= order.user.phone %></td>
+                                    </tr>
+                                    <% } %>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Address -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">Shipping Address</h6>
+                    </div>
+                    <div class="card-body">
+                        <address>
+                            <strong><%= order.shippingAddress.name || order.user.name %></strong><br>
+                            <%= order.shippingAddress.street %><br>
+                            <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> <%= order.shippingAddress.zipCode %><br>
+                            <%= order.shippingAddress.country %><br>
+                            <% if (order.shippingAddress.phone) { %>
+                                <i class="fas fa-phone"></i> <%= order.shippingAddress.phone %>
+                            <% } %>
+                        </address>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">Order Items</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% order.items.forEach(item => { %>
+                                <tr>
+                                    <td>
+                                        <% if (item.product && item.product.name) { %>
+                                            <strong><%= item.product.name %></strong>
+                                        <% } else { %>
+                                            <strong><%= item.name %></strong>
+                                        <% } %>
+                                    </td>
+                                    <td>$<%= item.price.toFixed(2) %></td>
+                                    <td><%= item.quantity %></td>
+                                    <td>$<%= (item.price * item.quantity).toFixed(2) %></td>
+                                </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Update Status & Order Summary -->
+            <div class="col-lg-4">
+                <!-- Update Status Form -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">Update Order Status</h6>
+                    </div>
+                    <div class="card-body">
+                        <form action="/admin/orders/<%= order.orderId %>/status" method="POST" class="status-form">
+                            <!-- Order Status -->
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Order Status</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="">Select Status</option>
+                                    <% statusOptions.forEach(option => { %>
+                                        <option value="<%= option %>" <%= order.status === option ? 'selected' : '' %>>
+                                            <%= option.charAt(0).toUpperCase() + option.slice(1) %>
+                                        </option>
+                                    <% }) %>
+                                </select>
+                            </div>
+
+                            <!-- Payment Status -->
+                            <div class="mb-3">
+                                <label for="paymentStatus" class="form-label">Payment Status</label>
+                                <select class="form-select" id="paymentStatus" name="paymentStatus">
+                                    <option value="">Select Payment Status</option>
+                                    <% paymentStatusOptions.forEach(option => { %>
+                                        <option value="<%= option %>" <%= order.paymentStatus === option ? 'selected' : '' %>>
+                                            <%= option.charAt(0).toUpperCase() + option.slice(1) %>
+                                        </option>
+                                    <% }) %>
+                                </select>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Update Status
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Order Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr>
+                                <td>Subtotal:</td>
+                                <td class="text-end">$<%= order.subtotal.toFixed(2) %></td>
+                            </tr>
+                            <% if (order.tax > 0) { %>
+                            <tr>
+                                <td>Tax:</td>
+                                <td class="text-end">$<%= order.tax.toFixed(2) %></td>
+                            </tr>
+                            <% } %>
+                            <% if (order.shippingFee > 0) { %>
+                            <tr>
+                                <td>Shipping Fee:</td>
+                                <td class="text-end">$<%= order.shippingFee.toFixed(2) %></td>
+                            </tr>
+                            <% } %>
+                            <tr class="table-active">
+                                <td><strong>Total Amount:</strong></td>
+                                <td class="text-end"><strong>$<%= order.totalAmount.toFixed(2) %></strong></td>
+                            </tr>
+                            <% if (order.discount > 0) { %>
+                            <tr class="text-danger">
+                                <td>Discount:</td>
+                                <td class="text-end">-$<%= order.discount.toFixed(2) %></td>
+                            </tr>
+                            <% } %>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h6>Quick Actions</h6>
+                        <div class="d-grid gap-2">
+                            <% if (order.status !== 'cancelled') { %>
+                            <form action="/admin/orders/<%= order.orderId %>/status" method="POST" class="d-grid">
+                                <input type="hidden" name="status" value="cancelled">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-times"></i> Cancel Order
+                                </button>
+                            </form>
+                            <% } %>
+                            
+                            <form action="/admin/orders/<%= order.orderId %>/delete" method="POST" 
+                                  onsubmit="return confirm('Are you sure you want to delete this order?');"
+                                  class="d-grid">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash"></i> Delete Order
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

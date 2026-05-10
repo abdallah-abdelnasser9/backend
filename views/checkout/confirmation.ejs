@@ -1,0 +1,145 @@
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-check-circle me-2"></i>Order Confirmed!</h4>
+                        <% if (order && order.orderId) { %>
+                            <span class="badge bg-light text-success fs-6">#<%= order.orderId %></span>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <% if (!order) { %>
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Order information not found. Please check your order history.
+                        </div>
+                        <div class="text-center mt-4">
+                            <a href="/cart" class="btn btn-primary">Back to Cart</a>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center mb-4">
+                            <i class="fas fa-check-circle fa-5x text-success mb-3"></i>
+                            <h2>Thank You For Your Order!</h2>
+                            <p class="lead">Your payment was successful and your order is being processed.</p>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>This is a simulation:</strong> No real payment was processed. 
+                            This is a demo of the checkout flow.
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-user me-2"></i>Customer Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-1"><strong>Name:</strong> <%= user.name %></p>
+                                        <p class="mb-1"><strong>Email:</strong> <%= user.email %></p>
+                                        <p class="mb-0"><strong>Order Date:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment Details</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-1"><strong>Method:</strong> <%= order.paymentMethod.replace('_', ' ').toUpperCase() %></p>
+                                        <p class="mb-1"><strong>Transaction ID:</strong> <%= order.paymentId %></p>
+                                        <p class="mb-0"><strong>Status:</strong> 
+                                            <span class="badge bg-success"><%= order.status %></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-shopping-bag me-2"></i>Order Summary</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Quantity</th>
+                                                <th>Price</th>
+                                                <th>Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% order.items.forEach(item => { %>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <% if (item.image) { %>
+                                                        <img src="<%= item.image %>" alt="<%= item.name %>" 
+                                                             class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                                        <% } %>
+                                                        <div>
+                                                            <h6 class="mb-0"><%= item.name %></h6>
+                                                            <small class="text-muted">$<%= item.price %></small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td><%= item.quantity %></td>
+                                                <td>$<%= item.price %></td>
+                                                <td>$<%= (item.price * item.quantity).toFixed(2) %></td>
+                                            </tr>
+                                            <% }) %>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                                                <td>$<%= order.subtotal.toFixed(2) %></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" class="text-end"><strong>Shipping:</strong></td>
+                                                <td>$<%= order.shipping.toFixed(2) %></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" class="text-end"><strong>Tax:</strong></td>
+                                                <td>$<%= order.tax.toFixed(2) %></td>
+                                            </tr>
+                                            <tr class="table-active">
+                                                <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                                <td><strong>$<%= order.total.toFixed(2) %></strong></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a href="/" class="btn btn-primary me-md-2">
+                                <i class="fas fa-home me-2"></i>Back to Home
+                            </a>
+                            <a href="/products" class="btn btn-outline-primary">
+                                <i class="fas fa-shopping-bag me-2"></i>Continue Shopping
+                            </a>
+                        </div>
+                    <% } %>
+                </div>
+                
+                <div class="card-footer text-muted text-center">
+                    <small>
+                        <i class="fas fa-envelope me-1"></i>
+                        A confirmation email has been sent to <%= user.email %> (simulated)
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

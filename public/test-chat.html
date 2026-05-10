@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Chat Button Test</h1>
+    
+    <div id="test1">Test 1: jQuery loaded... <span class="loading">⏳</span></div>
+    <div id="test2">Test 2: Button click... <span class="loading">⏳</span></div>
+    <div id="test3">Test 3: AJAX request... <span class="loading">⏳</span></div>
+    
+    <hr>
+    
+    <!-- Test button -->
+    <button id="testButton" class="btn btn-primary">Click Me</button>
+    
+    <script>
+    $(document).ready(function() {
+        console.log('✅ Test page loaded');
+        
+        // Test 1: jQuery
+        $('#test1 .loading').removeClass('loading').addClass('success').text('✅ PASS');
+        
+        // Test 2: Button click
+        $('#testButton').click(function() {
+            console.log('✅ Button clicked!');
+            $('#test2 .loading').removeClass('loading').addClass('success').text('✅ PASS');
+            alert('Button works!');
+        });
+        
+        // Test 3: AJAX
+        $.ajax({
+            url: '/chat/test',
+            method: 'GET',
+            success: function(data) {
+                console.log('✅ AJAX success:', data);
+                $('#test3 .loading').removeClass('loading').addClass('success').text('✅ PASS');
+            },
+            error: function() {
+                $('#test3 .loading').removeClass('loading').addClass('error').text('❌ FAIL');
+            }
+        });
+    });
+    </script>
+</body>
+</html>

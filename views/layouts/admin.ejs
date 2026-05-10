@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Admin Panel' %></title>
+    <%- include('../partials/admin-head') %>
+</head>
+<body>
+    <%- include('../partials/admin-navbar') %>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <%- include('../partials/admin-sidebar') %>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <!-- Flash Messages -->
+                <%- include('../partials/flash-messages') %>
+                
+                <!-- Page Content -->
+                <%- body %>
+            </main>
+        </div>
+    </div>
+    
+    <%- include('../partials/admin-scripts') %>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<div class="row">
+    <!-- Filters Sidebar -->
+    <div class="col-md-3">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Categories</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="/products" class="list-group-item list-group-item-action <%= !query.category ? 'active' : '' %>">
+                        All Categories
+                    </a>
+                    <% categories.forEach(cat => { %>
+                        <a href="/products?category=<%= cat.slug %>" 
+                           class="list-group-item list-group-item-action <%= query.category === cat.slug ? 'active' : '' %>">
+                            <%= cat.name %>
+                        </a>
+                    <% }) %>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Products List -->
+    <div class="col-md-9">
+        <div class="row mb-3">
+            <div class="col">
+                <h2><%= title %></h2>
+                <% if (query.q) { %>
+                    <p class="text-muted">Search results for: "<%= query.q %>"</p>
+                <% } %>
+                <p class="text-muted">Showing <%= products.length %> products</p>
+            </div>
+        </div>
+        
+        <% if (products.length === 0) { %>
+            <div class="text-center py-5">
+                <h3>No products found</h3>
+                <p>Try adjusting your search or browse our categories</p>
+                <a href="/products" class="btn btn-primary">Browse All Products</a>
+            </div>
+        <% } else { %>
+            <div class="row">
+                <% products.forEach(product => { %>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card product-card h-100">
+                        <% if (product.discountPrice) { %>
+                            <span class="badge bg-danger position-absolute top-0 end-0 m-2">
+                                Sale
+                            </span>
+                        <% } %>
+                        <img src="<%= product.images && product.images[0] ? product.images[0] : 'https://via.placeholder.com/300x200' %>" 
+                             class="card-img-top" alt="<%= product.name %>" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h6 class="card-title"><%= product.name %></h6>
+                            <p class="card-text text-muted small">
+                                <%= product.brand || '' %>
+                            </p>
+                            <div class="product-price mb-2">
+                                <% if (product.discountPrice) { %>
+                                    <span class="text-danger fw-bold">$<%= product.discountPrice %></span>
+                                    <span class="text-muted text-decoration-line-through">$<%= product.price %></span>
+                                <% } else { %>
+                                    <span class="fw-bold">$<%= product.price %></span>
+                                <% } %>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <a href="/products/<%= product.slug %>" class="btn btn-primary btn-sm">View Details</a>
+                                <% if (product.stock > 0) { %>
+                                    <button class="btn btn-outline-secondary btn-sm add-to-cart" 
+                                            data-product-id="<%= product._id %>">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                <% } else { %>
+                                    <button class="btn btn-outline-secondary btn-sm" disabled>
+                                        Out of Stock
+                                    </button>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Add to cart functionality
+    $('.add-to-cart').click(function() {
+        const productId = $(this).data('product-id');
+        
+        $.ajax({
+            url: '/cart/add',
+            method: 'POST',
+            data: { productId: productId, quantity: 1 },
+            success: function(response) {
+                if (response.success) {
+                    // Update cart count
+                    const cartCount = response.cartCount || 1;
+                    $('.badge.bg-danger').text(cartCount).removeClass('d-none');
+                    
+                    // Show notification
+                    const alertHtml = `
+                        <div class="alert alert-success alert-dismissible fade show position-fixed" 
+                             style="top: 20px; right: 20px; z-index: 1050;">
+                            Product added to cart!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                    
+                    $('body').append(alertHtml);
+                    
+                    setTimeout(() => {
+                        $('.alert').alert('close');
+                    }, 3000);
+                } else {
+                    alert('Error: ' + response.error);
+                }
+            },
+            error: function() {
+                alert('Error adding to cart. Please try again.');
+            }
+        });
+    });
+});
+</script>

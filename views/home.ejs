@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Home</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .category-card, .product-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .category-card:hover, .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .product-rating {
+            color: #ffc107;
+        }
+        
+        .product-price .text-decoration-line-through {
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Hero Section -->
+        <section class="hero bg-primary text-white py-5 rounded mb-4">
+            <div class="container text-center">
+                <h1 class="display-4 fw-bold">Welcome to our shop</h1>
+                <p class="lead">Shop the latest products with amazing discounts</p>
+                <a href="/products" class="btn btn-light btn-lg">Shop Now</a>
+            </div>
+        </section>
+
+        <!-- Featured Categories -->
+        <section class="mb-5">
+            <h2 class="mb-4">Shop by Category</h2>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="card category-card h-100">
+                        <img src="https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&h=400&fit=crop" 
+                             class="card-img-top" alt="Electronics" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">Electronics</h5>
+                            <p class="card-text text-muted small">Phones, Laptops, Headphones & more</p>
+                            <a href="/electronics" class="btn btn-outline-primary">Shop Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card category-card h-100">
+                        <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=600&h=400&fit=crop" 
+                             class="card-img-top" alt="Fashion" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">Fashion</h5>
+                            <p class="card-text text-muted small">Clothing, Shoes, Accessories</p>
+                            <a href="/fashion" class="btn btn-outline-primary">Shop Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card category-card h-100">
+                        <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop" 
+                             class="card-img-top" alt="Home" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">Home & Kitchen</h5>
+                            <p class="card-text text-muted small">Appliances, Cookware, Decor</p>
+                            <a href="/home" class="btn btn-outline-primary">Shop Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card category-card h-100">
+                        <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&h=400&fit=crop" 
+                             class="card-img-top" alt="Sports" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">Sports</h5>
+                            <p class="card-text text-muted small">Equipment, Gear, Accessories</p>
+                            <a href="/sports" class="btn btn-outline-primary">Shop Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Products Section -->
+        <section class="mb-5">
+            <h2 class="mb-4">Featured Products</h2>
+            <div class="row" id="featuredProducts">
+                <!-- Products will be loaded here by JavaScript -->
+                <div class="col-12 text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Load jQuery BEFORE your script -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    
+    <!-- Bootstrap Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    // Wait for document to be fully ready
+    $(document).ready(function() {
+        console.log("jQuery loaded, fetching products...");
+        
+        // Load featured products
+        $.ajax({
+            url: '/api/products/featured',
+            method: 'GET',
+            success: function(products) {
+                console.log("Products loaded:", products);
+                let html = '';
+                
+                if (!products || products.length === 0) {
+                    html = '<div class="col-12 text-center"><p class="text-muted">No featured products available.</p></div>';
+                } else {
+                    products.forEach(product => {
+                        // Ensure we have fallback values
+                        const productName = product.name || 'Unnamed Product';
+                        const productPrice = product.price || 0;
+                        const discountPrice = product.discountPrice || null;
+                        const productRating = product.rating || 0;
+                        const reviewCount = product.reviewsCount || 0;
+                        const productSlug = product.slug || product._id || '#';
+                        const productImage = (product.images && product.images[0]) ? 
+                            product.images[0] : 
+                            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=400&fit=crop';
+                        
+                        const ratingStars = Math.floor(productRating);
+                        
+                        html += `
+                        <div class="col-md-3 mb-4">
+                            <div class="card product-card h-100">
+                                <img src="${productImage}" 
+                                     class="card-img-top" alt="${productName}" 
+                                     style="height: 200px; object-fit: cover;">
+                                <div class="card-body">
+                                    <h6 class="card-title">${productName}</h6>
+                                    <div class="product-price mb-2">
+                                        ${discountPrice ? 
+                                            `<span class="text-danger fw-bold">$${discountPrice.toFixed(2)}</span>
+                                             <span class="text-muted text-decoration-line-through ms-2">$${productPrice.toFixed(2)}</span>` :
+                                            `<span class="fw-bold">$${productPrice.toFixed(2)}</span>`
+                                        }
+                                    </div>
+                                    <div class="product-rating">
+                                        ${'★'.repeat(ratingStars)}
+                                        ${'☆'.repeat(5 - ratingStars)}
+                                        <small class="text-muted ms-1">(${reviewCount})</small>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-white border-top-0">
+                                    <div class="d-flex justify-content-between">
+                                        <a href="/products/${productSlug}" class="btn btn-primary btn-sm">
+                                            View Details
+                                        </a>
+                                        <button class="btn btn-outline-secondary btn-sm add-to-cart" 
+                                                data-product-id="${product._id}">
+                                            <i class="fas fa-cart-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                }
+                $('#featuredProducts').html(html);
+                
+                // Add click handler for add-to-cart buttons
+                $('.add-to-cart').on('click', function() {
+                    const productId = $(this).data('product-id');
+                    console.log("Add to cart clicked:", productId);
+                    // Add your cart logic here
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error("Error loading products:", error);
+                $('#featuredProducts').html(`
+                    <div class="col-12 text-center">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Unable to load featured products. Please try again later.
+                        </div>
+                    </div>
+                `);
+            }
+        });
+    });
+    </script>
+</body>
+</html>

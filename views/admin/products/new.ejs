@@ -1,0 +1,186 @@
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 mb-0">Add New Product</h1>
+        <p class="text-muted">Create a new product for your store</p>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Product Information</h6>
+    </div>
+    <div class="card-body">
+        <form action="/admin/products/create" method="POST" enctype="multipart/form-data">
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- Basic Information -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Product Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="category" class="form-label">Category *</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <% categories.forEach(cat => { %>
+                                    <option value="<%= cat._id %>"><%= cat.name %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="brand" class="form-label">Brand</label>
+                            <input type="text" class="form-control" id="brand" name="brand">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                    </div>
+                    
+                    <!-- Pricing -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="price" class="form-label">Price ($) *</label>
+                            <input type="number" class="form-control" id="price" name="price" 
+                                   step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="discountPrice" class="form-label">Discount Price ($)</label>
+                            <input type="number" class="form-control" id="discountPrice" name="discountPrice" 
+                                   step="0.01" min="0">
+                        </div>
+                    </div>
+                    
+                    <!-- Stock & Inventory -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="stock" class="form-label">Stock Quantity *</label>
+                            <input type="number" class="form-control" id="stock" name="stock" 
+                                   min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="sku" class="form-label">SKU (Stock Keeping Unit)</label>
+                            <input type="text" class="form-control" id="sku" name="sku">
+                        </div>
+                    </div>
+                    
+                    <!-- Colors & Sizes -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="colors" class="form-label">Colors (comma separated)</label>
+                            <input type="text" class="form-control" id="colors" name="colors" 
+                                   placeholder="Red, Blue, Green, Black">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="sizes" class="form-label">Sizes (comma separated)</label>
+                            <input type="text" class="form-control" id="sizes" name="sizes" 
+                                   placeholder="S, M, L, XL">
+                        </div>
+                    </div>
+                    
+                    <!-- Specifications -->
+                    <div class="mb-3">
+                        <label for="specifications" class="form-label">Specifications (JSON format)</label>
+                        <textarea class="form-control" id="specifications" name="specifications" rows="4"></textarea>
+                        <small class="text-muted">Format: {"key": "value", "key2": "value2"}</small>
+                    </div>
+                    
+                    <!-- Features -->
+                    <div class="mb-3">
+                        <label for="features" class="form-label">Features (comma separated)</label>
+                        <input type="text" class="form-control" id="features" name="features" 
+                               placeholder="Feature 1, Feature 2, Feature 3">
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <!-- Images -->
+                    <div class="mb-3">
+                        <label for="images" class="form-label">Product Images *</label>
+                        <input type="file" class="form-control" id="images" name="images" 
+                               multiple accept="image/*" required>
+                        <small class="text-muted">Upload at least one image (max 5)</small>
+                    </div>
+                    
+                    <!-- Slug -->
+                    <div class="mb-3">
+                        <label for="slug" class="form-label">URL Slug</label>
+                        <input type="text" class="form-control" id="slug" name="slug" required>
+                        <small class="text-muted">Auto-generated from name or customize</small>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">Product Status</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="isFeatured" 
+                                       name="isFeatured" value="true">
+                                <label class="form-check-label" for="isFeatured">
+                                    Featured Product
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isActive" 
+                                       name="isActive" value="true" checked>
+                                <label class="form-check-label" for="isActive">
+                                    Active (Visible to customers)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Preview -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Image Preview</h6>
+                        </div>
+                        <div class="card-body text-center">
+                            <img id="imagePreview" src="https://via.placeholder.com/300x200?text=Product+Image" 
+                                 class="img-fluid rounded" alt="Preview" 
+                                 style="max-height: 150px; object-fit: contain;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create Product
+                </button>
+                <a href="/admin/products" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Image preview
+document.getElementById('images').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imagePreview').src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+});
+
+// Auto-generate slug from name
+document.getElementById('name').addEventListener('input', function() {
+    const name = this.value;
+    const slug = name.toLowerCase()
+        .replace(/[^\w\s]/gi, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+    document.getElementById('slug').value = slug;
+});
+</script>

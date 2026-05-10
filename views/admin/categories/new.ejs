@@ -1,0 +1,92 @@
+<!-- Only keep the form content, remove the entire navbar -->
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-plus-circle me-2"></i>Add New Category
+        </h1>
+        <a href="/admin/categories" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form action="/admin/categories/create" method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Category Name *</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="name" 
+                                   name="name" 
+                                   required
+                                   placeholder="e.g., Electronics, Clothing, Books"
+                                   autofocus>
+                            <div class="form-text">Enter a descriptive name for the category</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="3"
+                                      placeholder="Optional description for the category"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="parent" class="form-label">Parent Category</label>
+                            <select class="form-select" id="parent" name="parent">
+                                <option value="">-- Select Parent Category (Optional) --</option>
+                                <% if (categories && categories.length > 0) { %>
+                                    <% categories.forEach(cat => { %>
+                                        <option value="<%= cat._id %>"><%= cat.name %></option>
+                                    <% }) %>
+                                <% } %>
+                            </select>
+                            <div class="form-text">Leave empty if this is a main/top-level category</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="reset" class="btn btn-outline-secondary">
+                                <i class="fas fa-redo me-1"></i>Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Create Category
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Category Tips</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Categories help organize your products</li>
+                        <li>Use parent categories to create hierarchies</li>
+                        <li>Each category gets a unique URL slug</li>
+                        <li>Categories can be nested up to 3 levels</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-slug generation
+    document.getElementById('name').addEventListener('input', function(e) {
+        const name = e.target.value;
+        const slug = name.toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+        
+        console.log('Slug would be:', slug);
+    });
+</script>

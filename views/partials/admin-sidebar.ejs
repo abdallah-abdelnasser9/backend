@@ -1,0 +1,28 @@
+<div class="sidebar col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse" id="sidebarMenu">
+    <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link text-white <%= currentPage === 'dashboard' ? 'active' : '' %>" 
+                   href="/admin/dashboard">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white <%= currentPage === 'products' ? 'active' : '' %>" 
+                   href="/admin/products">
+                    <i class="fas fa-box me-2"></i>
+                    Products
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white <%= currentPage === 'categories' ? 'active' : '' %>" 
+                   href="/admin/categories">
+                    <i class="fas fa-tags me-2"></i>
+                    Categories
+                </a>
+            </li>
+            <!-- Add other menu items -->
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .order-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .product-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <!-- Back Button -->
+        <a href="/checkout/my-orders" class="btn btn-outline-secondary mb-4">
+            <i class="fas fa-arrow-left me-2"></i>Back to Orders
+        </a>
+        
+        <!-- Order Header -->
+        <div class="order-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2">Order #<%= order.orderId %></h1>
+                    <p class="mb-0">
+                        <i class="fas fa-calendar me-2"></i>
+                        <%= new Date(order.createdAt).toLocaleDateString() %>
+                        at <%= new Date(order.createdAt).toLocaleTimeString() %>
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <h2>$<%= order.total.toFixed(2) %></h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Items -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-shopping-bag me-2"></i>Order Items</h5>
+            </div>
+            <div class="card-body">
+                <% order.items.forEach(item => { %>
+                <div class="row align-items-center mb-3 pb-3 border-bottom">
+                    <div class="col-2">
+                        <img src="<%= item.image || 'https://via.placeholder.com/100' %>" 
+                             alt="<%= item.name %>" class="product-img">
+                    </div>
+                    <div class="col-5">
+                        <h6 class="mb-1"><%= item.name %></h6>
+                        <p class="text-muted mb-0">$<%= item.price %> each</p>
+                    </div>
+                    <div class="col-2 text-center">
+                        <span class="badge bg-primary p-2">Qty: <%= item.quantity %></span>
+                    </div>
+                    <div class="col-3 text-end">
+                        <h6 class="mb-0">$<%= (item.price * item.quantity).toFixed(2) %></h6>
+                    </div>
+                </div>
+                <% }) %>
+                
+                <!-- Totals -->
+                <div class="row justify-content-end mt-4">
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal</span>
+                            <span>$<%= order.subtotal.toFixed(2) %></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping</span>
+                            <span>$<%= order.shipping.toFixed(2) %></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Tax</span>
+                            <span>$<%= order.tax.toFixed(2) %></span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Total</strong>
+                            <strong class="h5">$<%= order.total.toFixed(2) %></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Info -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-user me-2"></i>Customer Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Name:</strong> <%= order.userName %></p>
+                        <p><strong>Email:</strong> <%= order.userEmail %></p>
+                        <p><strong>Order Status:</strong> 
+                            <span class="badge <%= order.status === 'processing' ? 'bg-info' : order.status === 'completed' ? 'bg-success' : 'bg-warning' %>">
+                                <%= order.status %>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Method:</strong> 
+                            <span class="text-capitalize"><%= order.paymentMethod %></span>
+                        </p>
+                        <p><strong>Transaction ID:</strong> 
+                            <code><%= order.paymentId %></code>
+                        </p>
+                        <p><strong>Payment Status:</strong> 
+                            <span class="badge <%= order.paymentStatus === 'completed' ? 'bg-success' : order.paymentStatus === 'failed' ? 'bg-danger' : 'bg-warning' %>">
+                                <%= order.paymentStatus %>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Shipping Address -->
+        <% if (order.shippingAddress) { %>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Shipping Address</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong><%= order.shippingAddress.street %></strong><br>
+                    <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> <%= order.shippingAddress.zipCode %><br>
+                    <%= order.shippingAddress.country %>
+                </p>
+            </div>
+        </div>
+        <% } %>
+        
+        <!-- Actions -->
+        <div class="text-center mt-4">
+            <a href="/products" class="btn btn-primary me-2">
+                <i class="fas fa-shopping-bag me-2"></i>Continue Shopping
+            </a>
+            <a href="/" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>Back to Home
+            </a>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 mb-0">Edit Product</h1>
+        <p class="text-muted">Update product information</p>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Edit Product Information</h6>
+    </div>
+    <div class="card-body">
+        <form action="/admin/products/<%= product._id %>/update" method="POST" enctype="multipart/form-data">
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- Basic Information -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Product Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="<%= product.name %>" required>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="category" class="form-label">Category *</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <% categories.forEach(cat => { %>
+                                    <option value="<%= cat._id %>" 
+                                        <%= product.category && product.category.toString() === cat._id.toString() ? 'selected' : '' %>>
+                                        <%= cat.name %>
+                                    </option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="brand" class="form-label">Brand</label>
+                            <input type="text" class="form-control" id="brand" name="brand" 
+                                   value="<%= product.brand || '' %>">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4"><%= product.description || '' %></textarea>
+                    </div>
+                    
+                    <!-- Pricing -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="price" class="form-label">Price ($) *</label>
+                            <input type="number" class="form-control" id="price" name="price" 
+                                   value="<%= product.price %>" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="discountPrice" class="form-label">Discount Price ($)</label>
+                            <input type="number" class="form-control" id="discountPrice" name="discountPrice" 
+                                   value="<%= product.discountPrice || '' %>" step="0.01" min="0">
+                        </div>
+                    </div>
+                    
+                    <!-- Stock & Inventory -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="stock" class="form-label">Stock Quantity *</label>
+                            <input type="number" class="form-control" id="stock" name="stock" 
+                                   value="<%= product.stock %>" min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="sku" class="form-label">SKU (Stock Keeping Unit)</label>
+                            <input type="text" class="form-control" id="sku" name="sku" 
+                                   value="<%= product.sku || '' %>">
+                        </div>
+                    </div>
+                    
+                    <!-- Colors & Sizes -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="colors" class="form-label">Colors (comma separated)</label>
+                            <input type="text" class="form-control" id="colors" name="colors" 
+                                   value="<%= product.colors ? product.colors.join(', ') : '' %>" 
+                                   placeholder="Red, Blue, Green, Black">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="sizes" class="form-label">Sizes (comma separated)</label>
+                            <input type="text" class="form-control" id="sizes" name="sizes" 
+                                   value="<%= product.sizes ? product.sizes.join(', ') : '' %>" 
+                                   placeholder="S, M, L, XL">
+                        </div>
+                    </div>
+                    
+                    <!-- Specifications -->
+                    <div class="mb-3">
+                        <label for="specifications" class="form-label">Specifications (JSON format)</label>
+                        <textarea class="form-control" id="specifications" name="specifications" rows="4"><%= JSON.stringify(product.specifications || {}, null, 2) %></textarea>
+                        <small class="text-muted">Format: {"key": "value", "key2": "value2"}</small>
+                    </div>
+                    
+                    <!-- Features -->
+                    <div class="mb-3">
+                        <label for="features" class="form-label">Features (comma separated)</label>
+                        <input type="text" class="form-control" id="features" name="features" 
+                               value="<%= product.features ? product.features.join(', ') : '' %>" 
+                               placeholder="Feature 1, Feature 2, Feature 3">
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <!-- Current Images -->
+                    <div class="mb-3">
+                        <label class="form-label">Current Images</label>
+                        <% if (product.images && product.images.length > 0) { %>
+                            <div class="row">
+                                <% product.images.forEach((image, index) => { %>
+                                <div class="col-6 mb-2">
+                                    <div class="position-relative">
+                                        <img src="<%= image %>" class="img-fluid rounded" alt="Product Image" 
+                                             style="width: 100%; height: 100px; object-fit: cover;">
+                                        <div class="form-check position-absolute top-0 start-0 m-1">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   name="keepImages" value="<%= image %>" checked>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% }) %>
+                            </div>
+                            <small class="text-muted">Uncheck to remove images</small>
+                        <% } else { %>
+                            <p class="text-muted">No images uploaded</p>
+                        <% } %>
+                    </div>
+                    
+                    <!-- New Images -->
+                    <div class="mb-3">
+                        <label for="newImages" class="form-label">Add New Images</label>
+                        <input type="file" class="form-control" id="newImages" name="newImages" 
+                               multiple accept="image/*">
+                        <small class="text-muted">Select multiple images (max 5)</small>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">Product Status</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="isFeatured" 
+                                       name="isFeatured" value="true" <%= product.isFeatured ? 'checked' : '' %>>
+                                <label class="form-check-label" for="isFeatured">
+                                    Featured Product
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isActive" 
+                                       name="isActive" value="true" <%= product.isActive ? 'checked' : '' %>>
+                                <label class="form-check-label" for="isActive">
+                                    Active (Visible to customers)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slug -->
+                    <div class="mb-3">
+                        <label for="slug" class="form-label">URL Slug</label>
+                        <input type="text" class="form-control" id="slug" name="slug" 
+                               value="<%= product.slug %>" required>
+                        <small class="text-muted">Used in product URL</small>
+                    </div>
+                    
+                    <!-- Preview -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Product Preview</h6>
+                        </div>
+                        <div class="card-body text-center">
+                            <img id="imagePreview" src="<%= product.images && product.images[0] ? product.images[0] : 'https://via.placeholder.com/300x200?text=Product+Image' %>" 
+                                 class="img-fluid rounded" alt="Preview" 
+                                 style="max-height: 150px; object-fit: contain;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Update Product
+                </button>
+                <a href="/admin/products" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="button" class="btn btn-danger float-end" 
+                        onclick="confirmDelete('<%= product._id %>')">
+                    <i class="fas fa-trash"></i> Delete Product
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Image preview for new images
+document.getElementById('newImages').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imagePreview').src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+});
+
+// Auto-generate slug from name
+document.getElementById('name').addEventListener('input', function() {
+    const name = this.value;
+    const slug = name.toLowerCase()
+        .replace(/[^\w\s]/gi, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+    document.getElementById('slug').value = slug;
+});
+
+// Confirm delete
+function confirmDelete(productId) {
+    if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+        window.location.href = '/admin/products/' + productId + '/delete';
+    }
+}
+</script>

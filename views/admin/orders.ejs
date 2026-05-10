@@ -1,0 +1,214 @@
+<%- layout('layouts/admin-simple') -%>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-shopping-bag me-2"></i>Orders Management</h1>
+    <div>
+        <a href="/admin/orders/generate-demo" class="btn btn-warning me-2">
+            <i class="fas fa-magic me-2"></i>Generate Demo Orders
+        </a>
+        <a href="/admin/dashboard" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Total Orders</h6>
+                        <h2 class="card-title"><%= stats.total %></h2>
+                    </div>
+                    <i class="fas fa-shopping-bag fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Delivered</h6>
+                        <h2 class="card-title"><%= stats.completed %></h2>
+                    </div>
+                    <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Pending</h6>
+                        <h2 class="card-title"><%= stats.pending %></h2>
+                    </div>
+                    <i class="fas fa-clock fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Total Revenue</h6>
+                        <h2 class="card-title">$<%= stats.totalRevenue.toFixed(2) %></h2>
+                    </div>
+                    <i class="fas fa-dollar-sign fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Orders</h5>
+    </div>
+    <div class="card-body">
+        <% if (orders && orders.length > 0) { %>
+            <div class="table-responsive">
+                <table class="table table-hover" id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% orders.forEach(order => { %>
+                        <tr>
+                            <td>
+                                <strong>#<%= order.orderId %></strong>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong><%= order.userName %></strong>
+                                    <br>
+                                    <small class="text-muted"><%= order.userEmail %></small>
+                                </div>
+                            </td>
+                            <td>
+                                <%= new Date(order.createdAt).toLocaleDateString() %>
+                                <br>
+                                <small class="text-muted"><%= new Date(order.createdAt).toLocaleTimeString() %></small>
+                            </td>
+                            <td>
+                                <%= order.itemCount %> item(s)
+                            </td>
+                            <td>
+                                <strong>$<%= order.total.toFixed(2) %></strong>
+                            </td>
+                            <td>
+                                <% if (order.status === 'delivered') { %>
+                                    <span class="order-status status-delivered">
+                                        <i class="fas fa-check-circle me-1"></i>Delivered
+                                    </span>
+                                <% } else if (order.status === 'pending') { %>
+                                    <span class="order-status status-pending">
+                                        <i class="fas fa-clock me-1"></i>Pending
+                                    </span>
+                                <% } else if (order.status === 'processing') { %>
+                                    <span class="order-status status-processing">
+                                        <i class="fas fa-cog me-1"></i>Processing
+                                    </span>
+                                <% } else if (order.status === 'shipped') { %>
+                                    <span class="order-status status-shipped">
+                                        <i class="fas fa-shipping-fast me-1"></i>Shipped
+                                    </span>
+                                <% } else if (order.status === 'cancelled') { %>
+                                    <span class="order-status status-cancelled">
+                                        <i class="fas fa-times-circle me-1"></i>Cancelled
+                                    </span>
+                                <% } else { %>
+                                    <span class="order-status">
+                                        <%= order.status %>
+                                    </span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <small class="text-capitalize">
+                                    <%= order.paymentMethod %>
+                                </small>
+                                <br>
+                                <small class="text-muted">
+                                    <%= order.paymentStatus %>
+                                </small>
+                            </td>
+                            <td>
+                                <a href="/admin/orders/<%= order.orderId %>" 
+                                   class="btn btn-sm btn-outline-primary me-1" 
+                                   title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteOrder('<%= order.orderId %>')"
+                                        title="Delete Order">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="text-center py-5">
+                <i class="fas fa-shopping-bag fa-4x text-muted mb-3"></i>
+                <h3>No Orders Found</h3>
+                <p class="text-muted mb-4">No orders have been placed yet.</p>
+                <a href="/admin/orders/generate-demo" class="btn btn-primary">
+                    <i class="fas fa-magic me-2"></i>Generate Demo Orders
+                </a>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<script>
+    // Initialize DataTable
+    $(document).ready(function() {
+        $('#ordersTable').DataTable({
+            pageLength: 10,
+            order: [[2, 'desc']] // Sort by date descending
+        });
+    });
+    
+    // Delete order
+    function deleteOrder(orderId) {
+        if (confirm(`Are you sure you want to delete order #${orderId}? This action cannot be undone.`)) {
+            fetch(`/admin/orders/${orderId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to delete order');
+            });
+        }
+    }
+</script>

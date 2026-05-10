@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diagnostic</title>
+    <script>
+    // Test if page loads
+    console.log('Diagnostic page loaded');
+    
+    // Catch all errors
+    window.onerror = function(msg) {
+        console.error('Global error:', msg);
+        document.body.innerHTML += '<div style="color:red">Error: ' + msg + '</div>';
+        return true;
+    };
+    </script>
+</head>
+<body>
+    <h1>Diagnostic</h1>
+    
+    <button id="testBtn">Test Button</button>
+    
+    <script>
+    // Test vanilla JS
+    document.getElementById('testBtn').addEventListener('click', function() {
+        console.log('Vanilla JS button clicked');
+        alert('Vanilla JS works!');
+    });
+    </script>
+    
+    <!-- Load jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    // Test jQuery
+    $(document).ready(function() {
+        console.log('jQuery loaded:', $.fn.jquery);
+        
+        $('#testBtn').click(function() {
+            console.log('jQuery button clicked');
+            alert('jQuery works!');
+        });
+    });
+    </script>
+</body>
+</html>

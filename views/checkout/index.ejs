@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Noonn</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        .modal {
+            z-index: 1050 !important;
+        }
+    </style>
+</head>
+<body>
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-shipping-fast me-2"></i>Shipping Information</h4>
+                </div>
+                <div class="card-body">
+                    <form id="checkoutForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">First Name *</label>
+                                <input type="text" class="form-control" name="firstName" required 
+                                       value="<%= user && user.name ? user.name.split(' ')[0] : '' %>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Last Name *</label>
+                                <input type="text" class="form-control" name="lastName" required 
+                                       value="<%= user && user.name && user.name.split(' ').length > 1 ? user.name.split(' ').slice(1).join(' ') : '' %>">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-control" name="email" required 
+                                   value="<%= user && user.email || '' %>">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Address *</label>
+                            <input type="text" class="form-control" name="address" required 
+                                   placeholder="1234 Main St">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">City *</label>
+                                <input type="text" class="form-control" name="city" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">State *</label>
+                                <select class="form-select" name="state" required>
+                                    <option value="">Choose...</option>
+                                    <option value="CA">California</option>
+                                    <option value="NY">New York</option>
+                                    <option value="TX">Texas</option>
+                                    <option value="FL">Florida</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">Zip *</label>
+                                <input type="text" class="form-control" name="zip" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number *</label>
+                            <input type="tel" class="form-control" name="phone" required>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <h4 class="mb-3">Payment Method</h4>
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="paymentMethod" 
+                                   id="paypal" value="paypal_sandbox" checked>
+                            <label class="form-check-label" for="paypal">
+                                <i class="fab fa-paypal me-2 text-primary"></i>PayPal Sandbox (Simulation)
+                                <small class="text-muted d-block">Test payment with simulated PayPal</small>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="paymentMethod" 
+                                   id="demo" value="demo">
+                            <label class="form-check-label" for="demo">
+                                <i class="fas fa-credit-card me-2"></i>Demo Payment
+                                <small class="text-muted d-block">Always successful for testing</small>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="paymentMethod" 
+                                   id="fail" value="fail">
+                            <label class="form-check-label" for="fail">
+                                <i class="fas fa-times-circle me-2 text-danger"></i>Failed Payment Test
+                                <small class="text-muted d-block">Simulate payment failure</small>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="saveInfo" checked>
+                            <label class="form-check-label" for="saveInfo">
+                                Save this information for next time
+                            </label>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Order Summary</h4>
+                </div>
+                <div class="card-body">
+                    <% if (cart && cart.items && cart.items.length > 0) { %>
+                        <% cart.items.forEach(item => { %>
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <h6 class="my-0"><%= item.name %></h6>
+                                <small class="text-muted">Qty: <%= item.quantity %> × $<%= item.price %></small>
+                            </div>
+                            <span class="text-muted">$<%= (item.price * item.quantity).toFixed(2) %></span>
+                        </div>
+                        <% }) %>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal</span>
+                            <span>$<%= cart.subtotal %></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping</span>
+                            <span>$<%= cart.shipping %></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tax</span>
+                            <span>$<%= cart.tax %></span>
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="d-flex justify-content-between">
+                            <strong>Total (USD)</strong>
+                            <strong>$<%= cart.total %></strong>
+                        </div>
+                    <% } else { %>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Your cart is empty
+                        </div>
+                    <% } %>
+                </div>
+                
+                <div class="card-footer">
+                    <% if (cart && cart.items && cart.items.length > 0) { %>
+                        <button type="button" class="btn btn-primary btn-lg w-100" onclick="processPayment()">
+                            <i class="fas fa-lock me-2"></i>Complete Purchase
+                        </button>
+                    <% } %>
+                    <a href="/cart" class="btn btn-outline-secondary w-100 mt-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Cart
+                    </a>
+                    
+                    <div class="alert alert-info mt-3 mb-0">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            <strong>Payment Simulation Mode:</strong> No real money will be charged. 
+                            This is a demo checkout process.
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Secure Checkout</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <i class="fas fa-lock fa-3x text-success mb-3"></i>
+                        <h6>Your Payment is Secure</h6>
+                        <p class="small text-muted">
+                            This is a simulated checkout. Your personal information is protected 
+                            and no real payment will be processed.
+                        </p>
+                        <div class="mt-3">
+                            <i class="fab fa-cc-visa fa-2x text-muted mx-2"></i>
+                            <i class="fab fa-cc-mastercard fa-2x text-muted mx-2"></i>
+                            <i class="fab fa-cc-paypal fa-2x text-muted mx-2"></i>
+                            <i class="fab fa-cc-amex fa-2x text-muted mx-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Processing Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p id="paymentStatus">Connecting to PayPal Sandbox...</p>
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="resultModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resultTitle">Payment Result</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="successResult" style="display: none;">
+                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                    <h4>Payment Successful!</h4>
+                    <p id="successMessage"></p>
+                    <p class="text-muted small">Order ID: <span id="orderId"></span></p>
+                </div>
+                <div id="errorResult" style="display: none;">
+                    <i class="fas fa-times-circle fa-4x text-danger mb-3"></i>
+                    <h4>Payment Failed</h4>
+                    <p id="errorMessage"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" 
+                        id="closeBtn">Close</button>
+                <a href="/checkout/confirmation" class="btn btn-primary" 
+                   id="viewOrderBtn" style="display: none;">View Order</a>
+            </div>
+        </div>
+    </div>
+</div><script>
+// Debug: Check if scripts are loaded
+console.log('Checkout script loaded');
+
+// Initialize modals - make sure Bootstrap is loaded first
+let paymentModal, resultModal;
+
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded');
+    
+    // Check if Bootstrap is available
+    if (typeof bootstrap !== 'undefined') {
+        console.log('Bootstrap is available');
+        
+        // Initialize modals
+        const paymentModalElement = document.getElementById('paymentModal');
+        const resultModalElement = document.getElementById('resultModal');
+        
+        if (paymentModalElement) {
+            paymentModal = new bootstrap.Modal(paymentModalElement);
+            console.log('Payment modal initialized');
+        } else {
+            console.error('Payment modal element not found!');
+        }
+        
+        if (resultModalElement) {
+            resultModal = new bootstrap.Modal(resultModalElement);
+            console.log('Result modal initialized');
+        } else {
+            console.error('Result modal element not found!');
+        }
+        
+        // Test: Add click listener to button
+        const completeBtn = document.querySelector('button[onclick="processPayment()"]');
+        if (completeBtn) {
+            console.log('Complete button found, adding click listener');
+            // Add both inline onclick and event listener
+            completeBtn.addEventListener('click', function(e) {
+                console.log('Button clicked via event listener');
+                processPayment();
+            });
+        }
+    } else {
+        console.error('Bootstrap is NOT loaded! Check CDN link.');
+        alert('Error: Bootstrap not loaded. Please refresh the page.');
+    }
+});
+
+// Make processPayment globally accessible
+window.processPayment = async function() {
+    console.log('processPayment function called');
+    
+    // Check if modals are initialized
+    if (!paymentModal || !resultModal) {
+        alert('Page not fully loaded. Please wait and try again.');
+        return;
+    }
+    
+    const form = document.getElementById('checkoutForm');
+    if (!form) {
+        alert('Form not found!');
+        return;
+    }
+    
+    // Basic form validation
+    const requiredFields = form.querySelectorAll('[required]');
+    let isValid = true;
+    let firstInvalidField = null;
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            isValid = false;
+            if (!firstInvalidField) {
+                firstInvalidField = field;
+            }
+            field.classList.add('is-invalid');
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        alert('Please fill in all required fields marked with *');
+        if (firstInvalidField) {
+            firstInvalidField.focus();
+        }
+        return;
+    }
+    
+    // Collect form data
+    const formData = new FormData(form);
+    const shippingAddress = {
+        firstName: formData.get('firstName'),
+        lastName: formData.get('lastName'),
+        email: formData.get('email'),
+        address: formData.get('address'),
+        city: formData.get('city'),
+        state: formData.get('state'),
+        zip: formData.get('zip'),
+        phone: formData.get('phone')
+    };
+    
+    // Get payment method
+    const paymentMethod = form.querySelector('input[name="paymentMethod"]:checked');
+    if (!paymentMethod) {
+        alert('Please select a payment method');
+        return;
+    }
+    
+    console.log('Shipping address:', shippingAddress);
+    console.log('Payment method:', paymentMethod.value);
+    
+    // Show processing modal
+    const paymentStatus = document.getElementById('paymentStatus');
+    if (paymentStatus) {
+        paymentStatus.textContent = 'Processing payment simulation...';
+    }
+    
+    try {
+        paymentModal.show();
+        
+        // Submit payment request
+        const response = await fetch('/checkout/process-payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                paymentMethod: paymentMethod.value,
+                shippingAddress: shippingAddress
+            })
+        });
+        
+        console.log('Response status:', response.status);
+        const result = await response.json();
+        console.log('Payment result:', result);
+        
+        // Hide processing modal
+        paymentModal.hide();
+        
+        // Show result
+        if (result.success) {
+            showSuccess(result);
+        } else {
+            showError(result.message || 'Payment failed');
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        paymentModal.hide();
+        showError('Network error. Please check your connection and try again.');
+    }
+};
+
+function showSuccess(result) {
+    console.log('Showing success:', result);
+    
+    const successResult = document.getElementById('successResult');
+    const errorResult = document.getElementById('errorResult');
+    const resultTitle = document.getElementById('resultTitle');
+    const successMessage = document.getElementById('successMessage');
+    const orderId = document.getElementById('orderId');
+    const closeBtn = document.getElementById('closeBtn');
+    const viewOrderBtn = document.getElementById('viewOrderBtn');
+    
+    if (successResult) successResult.style.display = 'block';
+    if (errorResult) errorResult.style.display = 'none';
+    if (resultTitle) resultTitle.textContent = 'Payment Successful!';
+    if (successMessage) successMessage.textContent = result.message || 'Payment completed successfully';
+    if (orderId) orderId.textContent = result.orderId || 'N/A';
+    
+    if (closeBtn) closeBtn.style.display = 'none';
+    if (viewOrderBtn) {
+        viewOrderBtn.style.display = 'inline-block';
+        if (result.redirectUrl) {
+            viewOrderBtn.href = result.redirectUrl;
+        } else if (result.orderId) {
+            viewOrderBtn.href = `/checkout/confirmation/${result.orderId}`;
+        }
+    }
+    
+    resultModal.show();
+}
+
+function showError(message) {
+    console.log('Showing error:', message);
+    
+    const successResult = document.getElementById('successResult');
+    const errorResult = document.getElementById('errorResult');
+    const resultTitle = document.getElementById('resultTitle');
+    const errorMessage = document.getElementById('errorMessage');
+    const closeBtn = document.getElementById('closeBtn');
+    const viewOrderBtn = document.getElementById('viewOrderBtn');
+    
+    if (successResult) successResult.style.display = 'none';
+    if (errorResult) errorResult.style.display = 'block';
+    if (resultTitle) resultTitle.textContent = 'Payment Failed';
+    if (errorMessage) errorMessage.textContent = message;
+    
+    if (closeBtn) closeBtn.style.display = 'inline-block';
+    if (viewOrderBtn) viewOrderBtn.style.display = 'none';
+    
+    resultModal.show();
+}
+</script>
