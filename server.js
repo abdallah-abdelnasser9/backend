@@ -25,8 +25,11 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // Add CORS middleware (BEFORE other middleware)
 app.use(cors({
-    origin: 'http://localhost:4200', // Angular dev server
-    credentials: true
+  origin: [
+    'http://localhost:4200',
+    'https://e-commerce-4o3t.vercel.app'
+  ],
+  credentials: true
 }));
 
 // Middleware
